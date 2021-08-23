@@ -43,3 +43,4 @@ body:
     attributes:
       label: Additional information.
       description: Any more information you would like to add? If you have any screenshots, videos, or other information that you feel is necessary to explain the issue, feel free to attach them here.
+      placeholder: If you are running Linux please tell us what Desktop Environment you are using on which distribution.
