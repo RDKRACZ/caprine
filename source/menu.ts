@@ -1,5 +1,5 @@
-import * as path from 'path';
-import {existsSync, writeFileSync} from 'fs';
+import * as path from 'node:path';
+import {existsSync, writeFileSync} from 'node:fs';
 import {app, shell, Menu, MenuItemConstructorOptions, dialog} from 'electron';
 import {
 	is,
@@ -7,7 +7,7 @@ import {
 	openUrlMenuItem,
 	aboutMenuItem,
 	openNewGitHubIssue,
-	debugInfo
+	debugInfo,
 } from 'electron-util';
 import config from './config';
 import getSpellCheckerLanguages from './spell-checker';
@@ -15,15 +15,22 @@ import {sendAction, showRestartDialog, getWindow, toggleTrayIcon, toggleLaunchMi
 import {generateSubmenu as generateEmojiSubmenu} from './emoji';
 import {toggleMenuBarMode} from './menu-bar-mode';
 import {caprineIconPath} from './constants';
-import {INewDesign} from './types';
 
-export default async function updateMenu({isNewDesign}: INewDesign): Promise<Menu> {
+export default async function updateMenu(): Promise<Menu> {
 	const newConversationItem: MenuItemConstructorOptions = {
 		label: 'New Conversation',
 		accelerator: 'CommandOrControl+N',
 		click() {
 			sendAction('new-conversation');
-		}
+		},
+	};
+
+	const newRoomItem: MenuItemConstructorOptions = {
+		label: 'New Room',
+		accelerator: 'CommandOrControl+O',
+		click() {
+			sendAction('new-room');
+		},
 	};
 
 	const switchItems: MenuItemConstructorOptions[] = [
@@ -35,7 +42,7 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 				config.set('useWorkChat', true);
 				app.relaunch();
 				app.quit();
-			}
+			},
 		},
 		{
 			label: 'Switch to Messenger…',
@@ -45,14 +52,14 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 				config.set('useWorkChat', false);
 				app.relaunch();
 				app.quit();
-			}
+			},
 		},
 		{
 			label: 'Log Out',
 			click() {
 				sendAction('log-out');
-			}
-		}
+			},
+		},
 	];
 
 	const vibrancySubmenu: MenuItemConstructorOptions[] = [
@@ -63,8 +70,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('vibrancy', 'none');
 				sendAction('update-vibrancy');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Sidebar-only Vibrancy',
@@ -73,8 +80,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('vibrancy', 'sidebar');
 				sendAction('update-vibrancy');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Full-window Vibrancy',
@@ -83,9 +90,9 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('vibrancy', 'full');
 				sendAction('update-vibrancy');
-				await updateMenu({isNewDesign});
-			}
-		}
+				await updateMenu();
+			},
+		},
 	];
 
 	const themeSubmenu: MenuItemConstructorOptions[] = [
@@ -96,8 +103,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('theme', 'system');
 				sendAction('set-theme');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Light Mode',
@@ -106,8 +113,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('theme', 'light');
 				sendAction('set-theme');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Dark Mode',
@@ -116,9 +123,9 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('theme', 'dark');
 				sendAction('set-theme');
-				await updateMenu({isNewDesign});
-			}
-		}
+				await updateMenu();
+			},
+		},
 	];
 
 	const sidebarSubmenu: MenuItemConstructorOptions[] = [
@@ -129,8 +136,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('sidebar', 'default');
 				sendAction('update-sidebar');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Hide Sidebar',
@@ -141,8 +148,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 				// Toggle between default and hidden
 				config.set('sidebar', config.get('sidebar') === 'hidden' ? 'default' : 'hidden');
 				sendAction('update-sidebar');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Narrow Sidebar',
@@ -151,8 +158,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('sidebar', 'narrow');
 				sendAction('update-sidebar');
-				await updateMenu({isNewDesign});
-			}
+				await updateMenu();
+			},
 		},
 		{
 			label: 'Wide Sidebar',
@@ -161,9 +168,9 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			async click() {
 				config.set('sidebar', 'wide');
 				sendAction('update-sidebar');
-				await updateMenu({isNewDesign});
-			}
-		}
+				await updateMenu();
+			},
+		},
 	];
 
 	const privacySubmenu: MenuItemConstructorOptions[] = [
@@ -173,7 +180,7 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			checked: config.get('block.chatSeen' as any),
 			click(menuItem) {
 				config.set('block.chatSeen' as any, menuItem.checked);
-			}
+			},
 		},
 		{
 			label: 'Block Typing Indicator',
@@ -181,7 +188,7 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			checked: config.get('block.typingIndicator' as any),
 			click(menuItem) {
 				config.set('block.typingIndicator' as any, menuItem.checked);
-			}
+			},
 		},
 		{
 			label: 'Block Delivery Receipts',
@@ -189,8 +196,8 @@ export default async function updateMenu({isNewDesign}: INewDesign): Promise<Men
 			checked: config.get('block.deliveryReceipt' as any),
 			click(menuItem) {
 				config.set('block.deliveryReceipt' as any, menuItem.checked);
-			}
-		}
+			},
+		},
 	];
 
 	const advancedSubmenu: MenuItemConstructorOptions[] = [
@@ -203,29 +210,8 @@ This is the custom styles file where you can add anything you want.
 The styles here will be injected into Caprine and will override default styles.
 If you want to disable styles but keep the config, just comment the lines that you don't want to be used.
 
-Here are some dark mode color variables to get you started.
-Edit them to change color scheme of Caprine.
 Press Command/Ctrl+R in Caprine to see your changes.
 */
-
-:root {
-	--base: #000;
-	--base-ninety: rgba(255, 255, 255, 0.9);
-	--base-seventy-five: rgba(255, 255, 255, 0.75);
-	--base-seventy: rgba(255, 255, 255, 0.7);
-	--base-fifty: rgba(255, 255, 255, 0.5);
-	--base-fourty: rgba(255, 255, 255, 0.4);
-	--base-thirty: rgba(255, 255, 255, 0.3);
-	--base-twenty: rgba(255, 255, 255, 0.2);
-	--base-five: rgba(255, 255, 255, 0.05);
-	--base-ten: rgba(255, 255, 255, 0.1);
-	--base-nine: rgba(255, 255, 255, 0.09);
-	--container-color: #323232;
-	--container-dark-color: #1e1e1e;
-	--list-header-color: #222;
-	--blue: #0084ff;
-	--selected-conversation-background: linear-gradient(hsla(209, 110%, 45%, 0.9), hsla(209, 110%, 42%, 0.9));
-}
 `;
 
 				if (!existsSync(filePath)) {
@@ -233,18 +219,21 @@ Press Command/Ctrl+R in Caprine to see your changes.
 				}
 
 				shell.openPath(filePath);
-			}
-		}
+			},
+		},
 	];
 
 	const preferencesSubmenu: MenuItemConstructorOptions[] = [
 		{
+			/* TODO: Fix privacy features */
+			/* If you want to help, see #1688 */
 			label: 'Privacy',
-			submenu: privacySubmenu
+			visible: is.development,
+			submenu: privacySubmenu,
 		},
 		{
 			label: 'Emoji Style',
-			submenu: await generateEmojiSubmenu({isNewDesign}, updateMenu)
+			submenu: await generateEmojiSubmenu(updateMenu),
 		},
 		{
 			label: 'Bounce Dock on Message',
@@ -253,34 +242,41 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			checked: config.get('bounceDockOnMessage'),
 			click() {
 				config.set('bounceDockOnMessage', !config.get('bounceDockOnMessage'));
-			}
+			},
 		},
 		{
+			/* TODO: Fix ability to disable autoplay */
+			/* GitHub issue: #1845 */
 			label: 'Autoplay Videos',
 			id: 'video-autoplay',
 			type: 'checkbox',
+			visible: is.development,
 			checked: config.get('autoplayVideos'),
 			click() {
 				config.set('autoplayVideos', !config.get('autoplayVideos'));
 				sendAction('toggle-video-autoplay');
-			}
+			},
 		},
 		{
+			/* TODO: Fix notifications */
 			label: 'Show Message Preview in Notifications',
 			type: 'checkbox',
+			visible: is.development,
 			checked: config.get('notificationMessagePreview'),
 			click(menuItem) {
 				config.set('notificationMessagePreview', menuItem.checked);
-			}
+			},
 		},
 		{
+			/* TODO: Fix notifications */
 			label: 'Mute Notifications',
 			id: 'mute-notifications',
 			type: 'checkbox',
+			visible: is.development,
 			checked: config.get('notificationsMuted'),
 			click() {
-				sendAction('toggle-mute-notifications', {isNewDesign});
-			}
+				sendAction('toggle-mute-notifications');
+			},
 		},
 		{
 			label: 'Mute Call Ringtone',
@@ -288,16 +284,18 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			checked: config.get('callRingtoneMuted'),
 			click() {
 				config.set('callRingtoneMuted', !config.get('callRingtoneMuted'));
-			}
+			},
 		},
 		{
+			/* TODO: Fix notification badge */
 			label: 'Show Unread Badge',
 			type: 'checkbox',
+			visible: is.development,
 			checked: config.get('showUnreadBadge'),
 			click() {
 				config.set('showUnreadBadge', !config.get('showUnreadBadge'));
 				sendAction('reload');
-			}
+			},
 		},
 		{
 			label: 'Spell Checker',
@@ -306,7 +304,7 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			click() {
 				config.set('isSpellCheckerEnabled', !config.get('isSpellCheckerEnabled'));
 				showRestartDialog('Caprine needs to be restarted to enable or disable the spell checker.');
-			}
+			},
 		},
 		{
 			label: 'Hardware Acceleration',
@@ -315,7 +313,7 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			click() {
 				config.set('hardwareAcceleration', !config.get('hardwareAcceleration'));
 				showRestartDialog('Caprine needs to be restarted to change hardware acceleration.');
-			}
+			},
 		},
 		{
 			label: 'Show Menu Bar Icon',
@@ -326,7 +324,7 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			click() {
 				config.set('menuBarMode', !config.get('menuBarMode'));
 				toggleMenuBarMode(getWindow());
-			}
+			},
 		},
 		{
 			label: 'Always on Top',
@@ -341,11 +339,11 @@ Press Command/Ctrl+R in Caprine to see your changes.
 						detail: 'This was triggered by Command/Control+Shift+T.',
 						buttons: [
 							'Display on Top',
-							'Don\'t Display on Top'
+							'Don\'t Display on Top',
 						],
 						defaultId: 0,
 						cancelId: 1,
-						checkboxLabel: 'Don\'t ask me again'
+						checkboxLabel: 'Don\'t ask me again',
 					});
 
 					config.set('showAlwaysOnTopPrompt', !result.checkboxChecked);
@@ -360,19 +358,20 @@ Press Command/Ctrl+R in Caprine to see your changes.
 					config.set('alwaysOnTop', !config.get('alwaysOnTop'));
 					focusedWindow?.setAlwaysOnTop(menuItem.checked);
 				}
-			}
+			},
 		},
 		{
+			/* TODO: Add support for Linux */
 			label: 'Launch at Login',
-			visible: is.macos || is.windows,
+			visible: !is.linux,
 			type: 'checkbox',
 			checked: app.getLoginItemSettings().openAtLogin,
 			click(menuItem) {
 				app.setLoginItemSettings({
 					openAtLogin: menuItem.checked,
-					openAsHidden: menuItem.checked
+					openAsHidden: menuItem.checked,
 				});
-			}
+			},
 		},
 		{
 			label: 'Auto Hide Menu Bar',
@@ -388,29 +387,38 @@ Press Command/Ctrl+R in Caprine to see your changes.
 					dialog.showMessageBox({
 						type: 'info',
 						message: 'Press the Alt key to toggle the menu bar.',
-						buttons: ['OK']
+						buttons: ['OK'],
 					});
 				}
-			}
+			},
 		},
 		{
+			label: 'Automatic Updates',
+			type: 'checkbox',
+			checked: config.get('autoUpdate'),
+			click() {
+				config.set('autoUpdate', !config.get('autoUpdate'));
+			},
+		},
+		{
+			/* TODO: Fix notifications */
 			label: 'Flash Window on Message',
 			type: 'checkbox',
-			visible: !is.macos,
+			visible: is.development,
 			checked: config.get('flashWindowOnMessage'),
 			click(menuItem) {
 				config.set('flashWindowOnMessage', menuItem.checked);
-			}
+			},
 		},
 		{
 			id: 'showTrayIcon',
 			label: 'Show Tray Icon',
 			type: 'checkbox',
-			enabled: (is.linux || is.windows) && !config.get('launchMinimized'),
+			enabled: !is.macos && !config.get('launchMinimized'),
 			checked: config.get('showTrayIcon'),
 			click() {
 				toggleTrayIcon();
-			}
+			},
 		},
 		{
 			label: 'Launch Minimized',
@@ -419,7 +427,7 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			checked: config.get('launchMinimized'),
 			click() {
 				toggleLaunchMinimized(menu);
-			}
+			},
 		},
 		{
 			label: 'Quit on Window Close',
@@ -427,15 +435,15 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			checked: config.get('quitOnWindowClose'),
 			click() {
 				config.set('quitOnWindowClose', !config.get('quitOnWindowClose'));
-			}
+			},
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Advanced',
-			submenu: advancedSubmenu
-		}
+			submenu: advancedSubmenu,
+		},
 	];
 
 	const viewSubmenu: MenuItemConstructorOptions[] = [
@@ -443,37 +451,37 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			label: 'Reset Text Size',
 			accelerator: 'CommandOrControl+0',
 			click() {
-				sendAction('zoom-reset', {isNewDesign});
-			}
+				sendAction('zoom-reset');
+			},
 		},
 		{
 			label: 'Increase Text Size',
 			accelerator: 'CommandOrControl+Plus',
 			click() {
-				sendAction('zoom-in', {isNewDesign});
-			}
+				sendAction('zoom-in');
+			},
 		},
 		{
 			label: 'Decrease Text Size',
 			accelerator: 'CommandOrControl+-',
 			click() {
-				sendAction('zoom-out', {isNewDesign});
-			}
+				sendAction('zoom-out');
+			},
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Theme',
-			submenu: themeSubmenu
+			submenu: themeSubmenu,
 		},
 		{
 			label: 'Vibrancy',
 			visible: is.macos,
-			submenu: vibrancySubmenu
+			submenu: vibrancySubmenu,
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Hide Names and Avatars',
@@ -488,33 +496,33 @@ Press Command/Ctrl+R in Caprine to see your changes.
 						detail: 'This was triggered by Command/Control+Shift+N.',
 						buttons: [
 							'Hide',
-							'Don\'t Hide'
+							'Don\'t Hide',
 						],
 						defaultId: 0,
 						cancelId: 1,
-						checkboxLabel: 'Don\'t ask me again'
+						checkboxLabel: 'Don\'t ask me again',
 					});
 
 					config.set('showPrivateModePrompt', !result.checkboxChecked);
 
 					if (result.response === 0) {
 						config.set('privateMode', !config.get('privateMode'));
-						sendAction('set-private-mode', isNewDesign);
+						sendAction('set-private-mode');
 					} else if (result.response === 1) {
 						menuItem.checked = false;
 					}
 				} else {
 					config.set('privateMode', !config.get('privateMode'));
-					sendAction('set-private-mode', isNewDesign);
+					sendAction('set-private-mode');
 				}
-			}
+			},
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Sidebar',
-			submenu: sidebarSubmenu
+			submenu: sidebarSubmenu,
 		},
 		{
 			label: 'Show Message Buttons',
@@ -523,153 +531,152 @@ Press Command/Ctrl+R in Caprine to see your changes.
 			click() {
 				config.set('showMessageButtons', !config.get('showMessageButtons'));
 				sendAction('toggle-message-buttons');
-			}
+			},
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Show Active Contacts',
 			click() {
 				sendAction('show-active-contacts-view');
-			}
+			},
 		},
 		{
 			label: 'Show Message Requests',
 			click() {
 				sendAction('show-message-requests-view');
-			}
+			},
 		},
 		{
 			label: 'Show Hidden Threads',
 			click() {
 				sendAction('show-hidden-threads-view');
-			}
+			},
 		},
-		{
-			label: 'Toggle Unread Threads',
-			visible: !isNewDesign,
-			click() {
-				sendAction('toggle-unread-threads-view');
-			}
-		}
 	];
 
 	const spellCheckerSubmenu: MenuItemConstructorOptions[] = getSpellCheckerLanguages();
 
 	const conversationSubmenu: MenuItemConstructorOptions[] = [
 		{
+			/* TODO: Fix conversation controls */
 			label: 'Mute Conversation',
+			visible: is.development,
 			accelerator: 'CommandOrControl+Shift+M',
 			click() {
-				sendAction<INewDesign>('mute-conversation', {isNewDesign});
-			}
+				sendAction('mute-conversation');
+			},
 		},
 		{
+			/* TODO: Fix conversation controls */
 			label: 'Hide Conversation',
+			visible: is.development,
 			accelerator: 'CommandOrControl+Shift+H',
 			click() {
-				sendAction<INewDesign>('hide-conversation', {isNewDesign});
-			}
+				sendAction('hide-conversation');
+			},
 		},
 		{
+			/* TODO: Fix conversation controls */
 			label: 'Delete Conversation',
+			visible: is.development,
 			accelerator: 'CommandOrControl+Shift+D',
 			click() {
-				sendAction<INewDesign>('delete-conversation', {isNewDesign});
-			}
+				sendAction('delete-conversation');
+			},
 		},
 		{
-			type: 'separator'
-		},
-		{
+			/* TODO: Fix conversation controls */
 			label: 'Select Next Conversation',
+			visible: is.development,
 			accelerator: 'Control+Tab',
 			click() {
 				sendAction('next-conversation');
-			}
+			},
 		},
 		{
+			/* TODO: Fix conversation controls */
 			label: 'Select Previous Conversation',
+			visible: is.development,
 			accelerator: 'Control+Shift+Tab',
 			click() {
 				sendAction('previous-conversation');
-			}
-		},
-		{
-			type: 'separator'
+			},
 		},
 		{
 			label: 'Find Conversation',
 			accelerator: 'CommandOrControl+K',
 			click() {
 				sendAction('find');
-			}
+			},
 		},
 		{
+			/* TODO: Fix conversation controls */
 			label: 'Search in Conversation',
+			visible: is.development,
 			accelerator: 'CommandOrControl+F',
 			click() {
-				sendAction('search', isNewDesign);
-			}
+				sendAction('search');
+			},
 		},
 		{
 			label: 'Insert GIF',
 			accelerator: 'CommandOrControl+G',
 			click() {
 				sendAction('insert-gif');
-			}
+			},
 		},
 		{
 			label: 'Insert Sticker',
 			accelerator: 'CommandOrControl+S',
 			click() {
 				sendAction('insert-sticker');
-			}
+			},
 		},
 		{
 			label: 'Insert Emoji',
 			accelerator: 'CommandOrControl+E',
 			click() {
 				sendAction('insert-emoji');
-			}
+			},
 		},
 		{
 			label: 'Attach Files',
 			accelerator: 'CommandOrControl+T',
 			click() {
 				sendAction('attach-files');
-			}
+			},
 		},
 		{
 			label: 'Focus Text Input',
 			accelerator: 'CommandOrControl+I',
 			click() {
 				sendAction('focus-text-input');
-			}
+			},
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Spell Checker Language',
 			visible: !is.macos && config.get('isSpellCheckerEnabled'),
-			submenu: spellCheckerSubmenu
-		}
+			submenu: spellCheckerSubmenu,
+		},
 	];
 
 	const helpSubmenu: MenuItemConstructorOptions[] = [
 		openUrlMenuItem({
 			label: 'Website',
-			url: 'https://sindresorhus.com/caprine'
+			url: 'https://sindresorhus.com/caprine',
 		}),
 		openUrlMenuItem({
 			label: 'Source Code',
-			url: 'https://github.com/sindresorhus/caprine'
+			url: 'https://github.com/sindresorhus/caprine',
 		}),
 		openUrlMenuItem({
 			label: 'Donate…',
-			url: 'https://github.com/sindresorhus/caprine?sponsor=1'
+			url: 'https://github.com/sindresorhus/caprine?sponsor=1',
 		}),
 		{
 			label: 'Report an Issue…',
@@ -685,22 +692,23 @@ ${debugInfo()}`;
 				openNewGitHubIssue({
 					user: 'sindresorhus',
 					repo: 'caprine',
-					body
+					body,
 				});
-			}
-		}
+			},
+		},
 	];
 
 	if (!is.macos) {
 		helpSubmenu.push(
 			{
-				type: 'separator'
+				type: 'separator',
 			},
 			aboutMenuItem({
 				icon: caprineIconPath,
 				copyright: 'Created by Sindre Sorhus',
-				website: 'https://sindresorhus.com/caprine'
-			})
+				text: 'Maintainers:\nDušan Simić\nLefteris Garyfalakis\nMichael Quevillon\nNikolas Spiridakis',
+				website: 'https://sindresorhus.com/caprine',
+			}),
 		);
 	}
 
@@ -709,16 +717,16 @@ ${debugInfo()}`;
 			label: 'Show Settings',
 			click() {
 				config.openInEditor();
-			}
+			},
 		},
 		{
 			label: 'Show App Data',
 			click() {
 				shell.openPath(app.getPath('userData'));
-			}
+			},
 		},
 		{
-			type: 'separator'
+			type: 'separator',
 		},
 		{
 			label: 'Delete Settings',
@@ -726,76 +734,77 @@ ${debugInfo()}`;
 				config.clear();
 				app.relaunch();
 				app.quit();
-			}
+			},
 		},
 		{
 			label: 'Delete App Data',
 			click() {
-				shell.moveItemToTrash(app.getPath('userData'));
+				shell.trashItem(app.getPath('userData'));
 				app.relaunch();
 				app.quit();
-			}
-		}
+			},
+		},
 	];
 
 	const macosTemplate: MenuItemConstructorOptions[] = [
 		appMenu([
 			{
 				label: 'Caprine Preferences',
-				submenu: preferencesSubmenu
+				submenu: preferencesSubmenu,
 			},
 			{
 				label: 'Messenger Preferences…',
 				accelerator: 'Command+,',
 				click() {
 					sendAction('show-preferences');
-				}
+				},
 			},
 			{
-				type: 'separator'
+				type: 'separator',
 			},
 			...switchItems,
 			{
-				type: 'separator'
+				type: 'separator',
 			},
 			{
 				label: 'Relaunch Caprine',
 				click() {
 					app.relaunch();
 					app.quit();
-				}
-			}
+				},
+			},
 		]),
 		{
 			role: 'fileMenu',
 			submenu: [
 				newConversationItem,
+				newRoomItem,
 				{
-					type: 'separator'
+					type: 'separator',
 				},
 				{
-					role: 'close'
-				}
-			]
+					role: 'close',
+				},
+			],
 		},
 		{
-			role: 'editMenu'
+			role: 'editMenu',
 		},
 		{
 			role: 'viewMenu',
-			submenu: viewSubmenu
+			submenu: viewSubmenu,
 		},
 		{
 			label: 'Conversation',
-			submenu: conversationSubmenu
+			submenu: conversationSubmenu,
 		},
 		{
-			role: 'windowMenu'
+			role: 'windowMenu',
 		},
 		{
 			role: 'help',
-			submenu: helpSubmenu
-		}
+			submenu: helpSubmenu,
+		},
 	];
 
 	const linuxWindowsTemplate: MenuItemConstructorOptions[] = [
@@ -803,54 +812,55 @@ ${debugInfo()}`;
 			role: 'fileMenu',
 			submenu: [
 				newConversationItem,
+				newRoomItem,
 				{
-					type: 'separator'
+					type: 'separator',
 				},
 				{
 					label: 'Caprine Settings',
-					submenu: preferencesSubmenu
+					submenu: preferencesSubmenu,
 				},
 				{
 					label: 'Messenger Settings',
 					accelerator: 'Control+,',
 					click() {
 						sendAction('show-preferences');
-					}
+					},
 				},
 				{
-					type: 'separator'
+					type: 'separator',
 				},
 				...switchItems,
 				{
-					type: 'separator'
+					type: 'separator',
 				},
 				{
 					label: 'Relaunch Caprine',
 					click() {
 						app.relaunch();
 						app.quit();
-					}
+					},
 				},
 				{
-					role: 'quit'
-				}
-			]
+					role: 'quit',
+				},
+			],
 		},
 		{
-			role: 'editMenu'
+			role: 'editMenu',
 		},
 		{
 			role: 'viewMenu',
-			submenu: viewSubmenu
+			submenu: viewSubmenu,
 		},
 		{
 			label: 'Conversation',
-			submenu: conversationSubmenu
+			submenu: conversationSubmenu,
 		},
 		{
 			role: 'help',
-			submenu: helpSubmenu
-		}
+			submenu: helpSubmenu,
+		},
 	];
 
 	const template = is.macos ? macosTemplate : linuxWindowsTemplate;
@@ -858,7 +868,7 @@ ${debugInfo()}`;
 	if (is.development) {
 		template.push({
 			label: 'Debug',
-			submenu: debugSubmenu
+			submenu: debugSubmenu,
 		});
 	}
 

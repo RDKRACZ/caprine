@@ -49,7 +49,7 @@ function disableVideoAutoplay(videos: NodeListOf<HTMLVideoElement>): void {
 		playIcon.setAttribute('id', disabledVideoId);
 
 		const {
-			style: {width, height}
+			style: {width, height},
 		} = firstParent;
 
 		const style = parentWithBackground.style || window.getComputedStyle(parentWithBackground);
@@ -69,7 +69,7 @@ function disableVideoAutoplay(videos: NodeListOf<HTMLVideoElement>): void {
 		image.setAttribute('height', height);
 		image.setAttribute('width', width);
 
-		// Create a seperate instance of the play icon
+		// Create a separate instance of the play icon
 		// Clone the existing icon to get the original events
 		// Without creating a new icon, Messenger auto-hides the icon when scrolled to the video
 		const copiedPlayIcon = playIcon.cloneNode(true) as HTMLElement;
@@ -120,14 +120,14 @@ function getVideos(): NodeListOf<HTMLVideoElement> {
 function startConversationWindowObserver(): void {
 	conversationDivObserver.observe(document.documentElement, {
 		childList: true,
-		subtree: true
+		subtree: true,
 	});
 }
 
 function startVideoObserver(element: Element): void {
 	videoObserver.observe(element, {
 		childList: true,
-		subtree: true
+		subtree: true,
 	});
 }
 
@@ -152,7 +152,7 @@ const conversationDivObserver = new MutationObserver(_ => {
 	}
 });
 
-// Refence to mutation observer
+// Reference to mutation observer
 // Only active if the user has set option to disable video autoplay
 const videoObserver = new MutationObserver(_ => {
 	// Select by tag instead of iterating over mutations which is more performant
